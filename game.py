@@ -31,7 +31,7 @@ height = 500
 # game window
 white = (255, 255, 255)
 
-# color of the straightlines on that
+# color of the straight lines on that
 # white game board, dividing board
 # into 9 parts
 line_color = (0, 0, 0)
@@ -54,7 +54,7 @@ screen = pg.display.set_mode((width, height + 100), 0, 32)
 
 # setting up a nametag for the
 # game window
-pg.display.set_caption("My Tic Tac Toe")
+pg.display.set_caption("Tic Tac Toe")
 
 # loading the images as python object
 initiating_window = pg.image.load("assets/modified_cover.png")
