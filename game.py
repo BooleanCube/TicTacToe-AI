@@ -1,59 +1,52 @@
-# importing the required libraries
+import numpy as np
 import pygame as pg
 import sys
+import os
 import time
 from pygame.locals import *
 from algorithms.neural_network import NeuralNetwork
+from data.getter import get_data
 
 # declaring the global variables
-
-cpu = NeuralNetwork()
-
-# for storing the 'x' or 'o'
-# value as character
-XO = 1 # represents 'X'
+XO = 2 # 2 represents 'X' adn 3 represents 'O'
 N = 5
 
-# storing the winner's value at
-# any instant of code
+# initialize the neural network and data
+cpu = NeuralNetwork(N)
+boards, labels = get_data(os.getcwd() + f"/data/ttt_dataset{N}x{N}.csv")
+
+
+# train the neural network for 3 epochs
+for epoch in range(1, 4):
+    start = time.time()
+    correct, total = 0, 0
+    for state, label in zip(boards, labels):
+        total += 1
+        output = cpu.feed_forward(state)
+        # print("here")
+        # print(label, np.argmax(output))
+        if np.argmax(output) == label: correct += 1
+        cpu.back_propagate(label)
+
+    print(f"Epoch #{epoch}:")
+    print(f"Accuracy: {round(correct/total * 100, 2)}%")
+    print(f"Epoch runtime: {time.time() - start} seconds")
+
 winner = None
-
-# to check if the game is a draw
 draw = None
+width, height = 500, 500
 
-# to set width of the game window
-width = 500
-
-# to set height of the game window
-height = 500
-
-# to set background color of the
-# game window
 white = (255, 255, 255)
-
-# color of the straight lines on that
-# white game board, dividing board
-# into 9 parts
 line_color = (0, 0, 0)
 
-# setting up a 3 * 3 board in canvas
 board = [[None] * N for _ in range(N)]
 
-# initializing the pygame window
 pg.init()
-
-# setting fps manually
 fps = 30
-
-# this is used to track time
 CLOCK = pg.time.Clock()
 
-# this method is used to build the
-# infrastructure of the display
 screen = pg.display.set_mode((width, height + 100), 0, 32)
 
-# setting up a nametag for the
-# game window
 pg.display.set_caption("Tic Tac Toe")
 
 # loading the images as python object
@@ -65,9 +58,6 @@ y_img = pg.image.load("assets/o_modified.png")
 initiating_window = pg.transform.scale(initiating_window, (width, height + 100))
 x_img = pg.transform.scale(x_img, (32000 // width, 32000 // height))
 o_img = pg.transform.scale(y_img, (32000 // width, 32000 // height))
-
-
-cpu.feed_forward([0]*25) # works i think?
 
 
 def game_initiating_window():
@@ -91,11 +81,9 @@ def game_initiating_window():
 
 
 def draw_status():
-    # getting the global variable draw
-    # into action
     global draw
 
-    if winner is None: message = ("X" if XO else "O") + "'s Turn"
+    if winner is None: message = ("X" if XO == 2 else "O") + "'s Turn"
     else: message = winner.upper() + " won !"
     if draw: message = "Game Draw !"
 
@@ -180,20 +168,11 @@ def check_win():
 def drawXO(row, col):
     global board, XO
 
-    # for the first row, the image
-    # should be pasted at a x coordinate
-    # of 30 from the left margin
     posx = width / N * (row - 1) + 12000 // width
     posy = height / N * (col - 1) + 12000 // height
 
-    # setting up the required board
-    # value to display
-    board[row - 1][col - 1] = "X" if XO else "O"
-    if XO:
-        # pasting x_img over the screen
-        # at a coordinate position of
-        # (pos_y, posx) defined in the
-        # above code
+    board[row - 1][col - 1] = "X" if XO == 2 else "O"
+    if XO == 2:
         screen.blit(x_img, (posy, posx))
         XO ^= 1
     else:
@@ -217,9 +196,6 @@ def user_click():
         if y < height / N * i:
             row = i
 
-    # after getting the row and col,
-    # we need to draw the images at
-    # the desired positions
     if (row and col and board[row - 1][col - 1] is None):
         global XO
         drawXO(row, col)
@@ -248,6 +224,6 @@ while (True):
             if (winner or draw):
                 time.sleep(3)
                 exit(0)
-                # reset_game() # reset the game instead of quitting the window
+                # reset_game()  # reset the game instead of quitting the window
     pg.display.update()
     CLOCK.tick(fps)
